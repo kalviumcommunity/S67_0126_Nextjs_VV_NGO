@@ -9,6 +9,7 @@ Comprehensive monorepo for an NGO project consisting of a Next.js backend (API +
 - Project overview
 - Repo structure
 - Requirements
+- Concept-2: Environment-Aware Builds & Secrets Management
 - Local development
   - Backend
   - Frontend
@@ -43,6 +44,70 @@ The apps use `@prisma/client` for DB access, `ioredis` for Redis, and typical au
 - npm
 - PostgreSQL (or Docker Compose to spin one up)
 - Redis (optional; used if running the full stack)
+
+## Concept-2: Environment-Aware Builds & Secrets Management
+
+This project uses separate environment files for development, staging, and production. Only the template file is tracked in git; real secrets are stored in secure secret managers.
+
+### Environment files
+
+- `.env.development`
+- `.env.staging`
+- `.env.production`
+- `.env.example` (tracked template)
+
+All real values are kept out of version control. The `.gitignore` excludes `.env*` while allowing `.env.example`.
+
+### Build selection
+
+Use environment-aware builds to ensure correct endpoints and credentials per target:
+
+```
+# staging build
+dotenv -e .env.staging -- next build
+
+# production build
+dotenv -e .env.production -- next build
+```
+
+You can wire these into `package.json` scripts (for the frontend or backend app) or your CI pipeline.
+
+### Secure secret management
+
+Secrets are stored in GitHub Secrets (or an equivalent vault) and injected during CI/CD builds. Example secret keys:
+
+- `STAGING_DATABASE_URL`
+- `STAGING_REDIS_URL`
+- `STAGING_JWT_SECRET`
+- `PRODUCTION_DATABASE_URL`
+- `PRODUCTION_REDIS_URL`
+- `PRODUCTION_JWT_SECRET`
+
+These map to runtime environment variables and are never committed to the repository.
+
+### Verification
+
+Run and verify environment-specific builds:
+
+```
+npm run build:staging
+npm run build:production
+```
+
+Add screenshots or logs here:
+
+![Staging build](docs/concept2-build-staging.png)
+![Production build](docs/concept2-build-production.png)
+
+### Reflection
+
+Multi-environment builds reduce deployment risk by isolating config per target. This prevents accidental production misconfigurations and makes CI/CD more reliable.
+
+### Video walkthrough
+
+Add your 3–5 minute walkthrough link here (Google Drive, “Anyone with the link can view”):
+
+- Video: <ADD_LINK_HERE>
 
 ## Local development
 
@@ -156,7 +221,7 @@ Typical environment variables you will need (examples):
 - `JWT_SECRET=your_jwt_secret`
 - `NEXT_PUBLIC_API_BASE=http://localhost:4000` (if frontend needs to call backend API)
 
-Set them in a `.env` file in the appropriate folder or pass into Docker Compose.
+Set them in the appropriate environment file (`.env.development`, `.env.staging`, `.env.production`) or pass them via your CI/CD pipeline or Docker Compose.
 
 ## Troubleshooting
 
