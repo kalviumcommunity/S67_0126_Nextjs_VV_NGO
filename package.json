@@ -1,8 +1,15 @@
 {
   "devDependencies": {
-    "prisma": "^6.19.2"
+    "prisma": "^6.19.2",
+    "@types/node": "^22.10.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
   },
   "dependencies": {
     "@prisma/client": "^6.19.2"
+  },
+  "prisma": {
+    "schema": "database/prisma/schema.prisma",
+    "seed": "ts-node database/prisma/seed.ts"
   }
 }
