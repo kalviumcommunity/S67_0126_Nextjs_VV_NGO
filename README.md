@@ -141,3 +141,58 @@ Add screenshots or logs here:
 
 This schema supports scalability by separating concerns across normalized tables and modeling relationships explicitly. Common queries (projects by user, tasks by project, pipeline tasks) are supported through indexed foreign keys and clear relations, keeping read paths efficient as data grows.
 
+---
+
+## Prisma ORM Setup & Client Initialization
+
+Prisma provides a type-safe ORM layer for PostgreSQL. It generates a strongly typed client based on the schema at [database/prisma/schema.prisma](database/prisma/schema.prisma).
+
+### Setup steps
+
+```
+npm install prisma --save-dev
+npm install @prisma/client
+npx prisma init
+```
+
+This project keeps the schema in `database/prisma/schema.prisma` and reads the database connection from `DATABASE_URL`.
+
+### Prisma client initialization
+
+The Prisma client singleton is defined at [src/lib/prisma.ts](src/lib/prisma.ts):
+
+```
+import { PrismaClient } from "@prisma/client";
+
+type PrismaGlobal = typeof globalThis & { prisma?: PrismaClient };
+
+const globalForPrisma = globalThis as PrismaGlobal;
+
+export const prisma =
+	globalForPrisma.prisma ||
+	new PrismaClient({
+		log: ["query", "info", "warn", "error"],
+	});
+
+if (process.env.NODE_ENV !== "production") {
+	globalForPrisma.prisma = prisma;
+}
+```
+
+### Generate the client
+
+```
+npx prisma generate
+```
+
+### Evidence
+
+Add screenshots or logs here:
+
+![Prisma generate](docs/prisma-generate.png)
+![Prisma query](docs/prisma-query.png)
+
+### Reflection
+
+Prisma improves developer productivity by generating a type-safe client directly from the schema. It reduces runtime query errors, makes refactors safer, and keeps database access consistent across the app.
+
