@@ -196,3 +196,59 @@ Add screenshots or logs here:
 
 Prisma improves developer productivity by generating a type-safe client directly from the schema. It reduces runtime query errors, makes refactors safer, and keeps database access consistent across the app.
 
+---
+
+## Prisma Migrations & Seeding
+
+This project uses Prisma migrations to version schema changes and a seed script to insert reproducible starter data.
+
+### Migration workflow
+
+Create and apply the initial migration:
+
+```
+npx prisma migrate dev --name init_schema
+```
+
+Create a new migration after schema changes:
+
+```
+npx prisma migrate dev --name add_project_table
+```
+
+Reset and re-apply all migrations (use carefully in non-production environments):
+
+```
+npx prisma migrate reset
+```
+
+### Seed script
+
+The seed script lives at [database/prisma/seed.ts](database/prisma/seed.ts) and is configured in [package.json](package.json) under the `prisma.seed` field.
+
+Run the seed:
+
+```
+npx prisma db seed
+```
+
+### Verify
+
+Open Prisma Studio to confirm data:
+
+```
+npx prisma studio
+```
+
+### Evidence
+
+Add screenshots or logs here:
+
+![Migration success](docs/prisma-migrate-success.png)
+![Seed success](docs/prisma-seed-success.png)
+![Prisma Studio](docs/prisma-studio.png)
+
+### Reflection
+
+Versioned migrations keep database changes consistent across environments. The seed script provides predictable starter data for development and testing without risking production data, and resets are performed only on local or staging databases after verifying backups.
+
