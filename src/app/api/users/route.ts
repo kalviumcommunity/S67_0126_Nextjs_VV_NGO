@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
+import { sendSuccess, sendError } from '../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../lib/errorCodes';
 
 export async function GET(req: Request) {
   try {
@@ -22,9 +23,9 @@ export async function GET(req: Request) {
       prisma.user.count({ where }),
     ]);
 
-    return NextResponse.json({ page, limit, total, items });
+    return sendSuccess({ page, limit, total, items }, 'Users fetched');
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
+    return sendError('Failed to fetch users', ERROR_CODES.INTERNAL_ERROR, 500, err?.message || err);
   }
 }
 
@@ -36,8 +37,8 @@ export async function POST(req: Request) {
     }
 
     const created = await prisma.user.create({ data: { name: body.name, email: body.email, role: body.role || 'CONTRIBUTOR', passwordHash: body.passwordHash || '' } });
-    return NextResponse.json({ message: 'User created', data: created }, { status: 201 });
+    return sendSuccess(created, 'User created', 201);
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
+    return sendError('Failed to create user', ERROR_CODES.DATABASE_FAILURE, 500, err?.message || err);
   }
 }
