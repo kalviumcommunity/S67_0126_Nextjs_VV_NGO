@@ -45,6 +45,52 @@ Open http://localhost:3000 in your browser.
 
 This structure separates routes, UI components, and shared logic, which reduces coupling and makes ownership clear. It helps the team scale features without creating large, tangled files or inconsistent patterns.
 
+---
+
+## API Routes
+
+The backend exposes simple RESTful JSON endpoints under `app/api/` for the main entities.
+
+- `GET /api/users` — list users (supports `page`, `limit`, `q` search)
+- `POST /api/users` — create user
+- `GET /api/users/:id` — get user
+- `PUT /api/users/:id` — update user
+- `DELETE /api/users/:id` — delete user
+
+- `GET /api/projects` — list projects (supports `page`, `limit`, `q`, `ownerId`)
+- `POST /api/projects` — create project
+- `GET /api/projects/:id` — get project (includes `pipelines` and `tasks`)
+- `PUT /api/projects/:id` — update project
+- `DELETE /api/projects/:id` — delete project
+
+- `GET /api/tasks` — list tasks (supports `page`, `limit`, `projectId`, `assigneeId`)
+- `POST /api/tasks` — create task
+- `GET /api/tasks/:id` — get task
+- `PUT /api/tasks/:id` — update task
+- `DELETE /api/tasks/:id` — delete task
+
+Sample curl requests:
+
+```bash
+curl -X GET "http://localhost:3000/api/users?page=1&limit=10"
+
+curl -X POST "http://localhost:3000/api/users" -H "Content-Type: application/json" -d '{"name":"Charlie","email":"charlie@example.com"}'
+
+curl -X GET "http://localhost:3000/api/projects?ownerId=USER_ID"
+
+curl -X POST "http://localhost:3000/api/tasks" -H "Content-Type: application/json" -d '{"title":"New task","projectId":"PROJECT_ID"}'
+```
+
+Error handling:
+
+- Endpoints return JSON errors with HTTP status codes (400 for bad input, 404 for not found, 500 for server errors).
+
+Pagination:
+
+- Use `page` and `limit` query params; defaults are `page=1`, `limit=10`.
+
+These routes are minimal examples linked to the Prisma models and intended as a starting point for production-ready validation, auth, and input sanitization.
+
 ## Screenshot
 
 Add a screenshot of the app running locally here:
