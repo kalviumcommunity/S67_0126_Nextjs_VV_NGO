@@ -143,6 +143,67 @@ This schema supports scalability by separating concerns across normalized tables
 
 ---
 
+## Transactions & Query Optimisation
+
+This section shows how to use Prisma transactions to maintain atomic operations and how indexes were added to speed common queries.
+
+### What I changed
+
+- Added indexes in `database/prisma/schema.prisma` for frequently queried fields: `Project.ownerId`, `Project.status`, `Project.title`, `Pipeline.projectId`, `Task.projectId`, `Task.assigneeId`, `Task.status`, and `TemplateTask.templateId`.
+- Added a transaction example at `src/lib/transactions.ts` demonstrating `prisma.$transaction()` and rollback handling.
+
+### Transaction example
+
+Use `createProjectWithTask()` to atomically create a project and an initial task. The helper `createProjectThenFail()` demonstrates rollback behavior by intentionally creating invalid data.
+
+File: `src/lib/transactions.ts`
+
+### Migrations
+
+After updating the schema, create and apply a migration that adds indexes:
+
+```bash
+npx prisma migrate dev --name add_indexes
+```
+
+If you need to reset local DB and reapply migrations + seed:
+
+```bash
+npx prisma migrate reset
+npx prisma db seed
+```
+
+### Query optimisation tips
+
+- Select only needed fields (`select` instead of `include` when possible).
+- Use `createMany` for bulk inserts.
+- Paginate with `skip`/`take` and use `orderBy` on indexed columns.
+
+### Benchmarking / logs
+
+Enable Prisma query logging to observe executed SQL:
+
+PowerShell:
+
+```powershell
+$env:DEBUG = "prisma:query"
+npm run dev
+```
+
+Unix/macOS:
+
+```bash
+DEBUG="prisma:query" npm run dev
+```
+
+Compare timings before and after adding indexes using `EXPLAIN` in your Postgres client or by inspecting the Prisma query logs.
+
+### Reflection
+
+Transactions ensure data integrity for multi-step operations; indexes improve read performance for repeated queries. Avoid N+1 patterns by careful `select` usage and use pagination for large result sets.
+
+---
+
 ## Prisma ORM Setup & Client Initialization
 
 Prisma provides a type-safe ORM layer for PostgreSQL. It generates a strongly typed client based on the schema at [database/prisma/schema.prisma](database/prisma/schema.prisma).

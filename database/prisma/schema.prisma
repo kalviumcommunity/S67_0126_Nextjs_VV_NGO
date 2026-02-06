@@ -52,6 +52,10 @@ model Project {
 
   pipelines   Pipeline[]
   tasks       Task[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([title])
 }
 
 model Pipeline {
@@ -65,6 +69,8 @@ model Pipeline {
   project     Project   @relation(fields: [projectId], references: [id])
 
   tasks       Task[]
+
+  @@index([projectId])
 }
 
 model Task {
@@ -84,6 +90,10 @@ model Task {
 
   assigneeId  String?
   assignee    User?      @relation("TaskAssignee", fields: [assigneeId], references: [id])
+
+  @@index([projectId])
+  @@index([assigneeId])
+  @@index([status])
 }
 
 model Template {
@@ -106,4 +116,6 @@ model TemplateTask {
 
   templateId  String
   template    Template @relation(fields: [templateId], references: [id])
+
+  @@index([templateId])
 }
