@@ -1,0 +1,49 @@
+{
+  "info": {
+    "name": "NGO Project API",
+    "_postman_id": "ngoproject-collection",
+    "description": "Basic collection for users, projects, and tasks endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "List Users",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/users?page=1&limit=10",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api","users"]
+        }
+      }
+    },
+    {
+      "name": "Create User",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Charlie\",\n  \"email\": \"charlie@example.com\"\n}"
+        },
+        "url": { "raw": "http://localhost:3000/api/users", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api","users"] }
+      }
+    },
+    {
+      "name": "List Projects",
+      "request": { "method": "GET", "url": { "raw": "http://localhost:3000/api/projects", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api","projects"] } }
+    },
+    {
+      "name": "Create Task",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"title\": \"Sample Task\",\n  \"projectId\": \"PROJECT_ID\"\n}" },
+        "url": { "raw": "http://localhost:3000/api/tasks", "protocol": "http", "host": ["localhost"], "port": "3000", "path": ["api","tasks"] }
+      }
+    }
+  ]
+}

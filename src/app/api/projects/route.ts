@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
+import { sendSuccess, sendError } from '../../../lib/responseHandler';
+import { ERROR_CODES } from '../../../lib/errorCodes';
 
 export async function GET(req: Request) {
   try {
@@ -19,19 +20,19 @@ export async function GET(req: Request) {
       prisma.project.count({ where }),
     ]);
 
-    return NextResponse.json({ page, limit, total, items });
+    return sendSuccess({ page, limit, total, items }, 'Projects fetched');
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
+    return sendError('Failed to fetch projects', ERROR_CODES.INTERNAL_ERROR, 500, err?.message || err);
   }
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    if (!body.title || !body.ownerId) return NextResponse.json({ error: 'title and ownerId are required' }, { status: 400 });
+    if (!body.title || !body.ownerId) return sendError('title and ownerId are required', ERROR_CODES.VALIDATION_ERROR, 400);
     const created = await prisma.project.create({ data: body });
-    return NextResponse.json({ message: 'Project created', data: created }, { status: 201 });
+    return sendSuccess(created, 'Project created', 201);
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 });
+    return sendError('Failed to create project', ERROR_CODES.DATABASE_FAILURE, 500, err?.message || err);
   }
 }

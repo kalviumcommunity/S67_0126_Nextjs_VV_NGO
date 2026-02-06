@@ -91,6 +91,51 @@ Pagination:
 
 These routes are minimal examples linked to the Prisma models and intended as a starting point for production-ready validation, auth, and input sanitization.
 
+### Standardized Response Format
+
+All API responses follow a consistent envelope using the `sendSuccess` and `sendError` helpers in `src/lib/responseHandler.ts`.
+
+Success JSON:
+
+```json
+{
+	"success": true,
+	"message": "Users fetched",
+	"data": { "page": 1, "limit": 10, "total": 2, "items": [] },
+	"timestamp": "2026-02-06T12:00:00.000Z"
+}
+```
+
+Error JSON:
+
+```json
+{
+	"success": false,
+	"message": "Failed to fetch users",
+	"error": { "code": "E500", "details": "Database connection failed" },
+	"timestamp": "2026-02-06T12:00:00.000Z"
+}
+```
+
+Usage example in a route (simplified):
+
+```ts
+import { sendSuccess, sendError } from '@/lib/responseHandler';
+
+try {
+	const items = await prisma.user.findMany();
+	return sendSuccess(items, 'Users fetched');
+} catch (err) {
+	return sendError('Failed to fetch users', 'E500', 500, err.message);
+}
+```
+
+Using a consistent envelope simplifies frontend error handling and logging, and makes it easier to attach observability metadata (timestamps, error codes) across services.
+
+### Postman collection
+
+A small Postman collection is included at `docs/postman_collection.json` with basic requests for `users`, `projects`, and `tasks` to help testing locally.
+
 ## Screenshot
 
 Add a screenshot of the app running locally here:
