@@ -1,6 +1,14 @@
 import prisma from '../../../lib/prisma';
 import { sendSuccess, sendError } from '../../../lib/responseHandler';
 import { ERROR_CODES } from '../../../lib/errorCodes';
+import { createTaskSchema } from '../../../lib/schemas/taskSchema';
+import type { ZodError } from 'zod';
+
+const formatZodErrors = (error: ZodError) =>
+  error.errors.map((err) => ({
+    field: err.path[0],
+    message: err.message,
+  }));
 
 export async function GET(req: Request) {
   try {
@@ -29,8 +37,12 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    if (!body.title || !body.projectId) return NextResponse.json({ error: 'title and projectId are required' }, { status: 400 });
-    const created = await prisma.task.create({ data: body });
+    const parsed = createTaskSchema.safeParse(body);
+    if (!parsed.success) {
+      return sendError('Validation Error', ERROR_CODES.VALIDATION_ERROR, 400, formatZodErrors(parsed.error));
+    }
+
+    const created = await prisma.task.create({ data: parsed.data });
     return sendSuccess(created, 'Task created', 201);
   } catch (err: any) {
     return sendError('Failed to create task', ERROR_CODES.DATABASE_FAILURE, 500, err?.message || err);

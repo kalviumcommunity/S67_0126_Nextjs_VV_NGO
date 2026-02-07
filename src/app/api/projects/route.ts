@@ -1,6 +1,14 @@
 import prisma from '../../../lib/prisma';
 import { sendSuccess, sendError } from '../../../lib/responseHandler';
 import { ERROR_CODES } from '../../../lib/errorCodes';
+import { createProjectSchema } from '../../../lib/schemas/projectSchema';
+import type { ZodError } from 'zod';
+
+const formatZodErrors = (error: ZodError) =>
+  error.errors.map((err) => ({
+    field: err.path[0],
+    message: err.message,
+  }));
 
 export async function GET(req: Request) {
   try {
@@ -29,8 +37,12 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    if (!body.title || !body.ownerId) return sendError('title and ownerId are required', ERROR_CODES.VALIDATION_ERROR, 400);
-    const created = await prisma.project.create({ data: body });
+    const parsed = createProjectSchema.safeParse(body);
+    if (!parsed.success) {
+      return sendError('Validation Error', ERROR_CODES.VALIDATION_ERROR, 400, formatZodErrors(parsed.error));
+    }
+
+    const created = await prisma.project.create({ data: parsed.data });
     return sendSuccess(created, 'Project created', 201);
   } catch (err: any) {
     return sendError('Failed to create project', ERROR_CODES.DATABASE_FAILURE, 500, err?.message || err);
