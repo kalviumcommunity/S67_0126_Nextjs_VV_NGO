@@ -16,3 +16,8 @@ export const updateUserSchema = baseUserSchema
   .refine((data) => Object.keys(data).length > 0, {
     message: "At least one field is required",
   });
+
+export const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});

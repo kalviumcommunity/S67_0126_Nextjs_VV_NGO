@@ -1,58 +1,22 @@
-import prisma from '../../../lib/prisma';
-import { sendSuccess, sendError } from '../../../lib/responseHandler';
-import { ERROR_CODES } from '../../../lib/errorCodes';
-import { createUserSchema } from '../../../lib/schemas/userSchema';
-import type { ZodError } from 'zod';
+import { NextRequest } from "next/server";
+import { prisma } from "../../../lib/prisma";
+import { withAuth } from "../../../lib/middleware";
+import { sendSuccess, sendError } from "../../../lib/responseHandler";
 
-const formatZodErrors = (error: ZodError) =>
-  error.errors.map((err) => ({
-    field: err.path[0],
-    message: err.message,
-  }));
-
-export async function GET(req: Request) {
+async function handler(req: NextRequest, user: any) {
   try {
-    const { searchParams } = new URL(req.url);
-    const page = Math.max(Number(searchParams.get('page')) || 1, 1);
-    const limit = Math.min(Number(searchParams.get('limit')) || 10, 100);
-    const skip = (page - 1) * limit;
-    const q = searchParams.get('q') || undefined;
-
-    const where: any = {};
-    if (q) {
-      where.OR = [
-        { name: { contains: q, mode: 'insensitive' } },
-        { email: { contains: q, mode: 'insensitive' } },
-      ];
+    if (req.method === "GET") {
+      const users = await prisma.user.findMany({
+        select: { id: true, name: true, email: true, role: true, createdAt: true },
+      });
+      return sendSuccess(users, "Users fetched successfully");
     }
 
-    const [items, total] = await Promise.all([
-      prisma.user.findMany({ where, skip, take: limit, select: { id: true, name: true, email: true, role: true, createdAt: true } }),
-      prisma.user.count({ where }),
-    ]);
-
-    return sendSuccess({ page, limit, total, items }, 'Users fetched');
-  } catch (err: any) {
-    return sendError('Failed to fetch users', ERROR_CODES.INTERNAL_ERROR, 500, err?.message || err);
+    return sendError("Method not allowed", "METHOD_NOT_ALLOWED", 405);
+  } catch (error) {
+    console.error("Users API error:", error);
+    return sendError("Internal server error", "INTERNAL_ERROR", 500, error);
   }
 }
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const parsed = createUserSchema.safeParse(body);
-    if (!parsed.success) {
-      return sendError('Validation Error', ERROR_CODES.VALIDATION_ERROR, 400, formatZodErrors(parsed.error));
-    }
-
-    const created = await prisma.user.create({
-      data: {
-        ...parsed.data,
-        passwordHash: parsed.data.passwordHash ?? '',
-      },
-    });
-    return sendSuccess(created, 'User created', 201);
-  } catch (err: any) {
-    return sendError('Failed to create user', ERROR_CODES.DATABASE_FAILURE, 500, err?.message || err);
-  }
-}
+export const GET = withAuth(handler);
