@@ -1,6 +1,14 @@
 import prisma from '../../../lib/prisma';
 import { sendSuccess, sendError } from '../../../lib/responseHandler';
 import { ERROR_CODES } from '../../../lib/errorCodes';
+import { createUserSchema } from '../../../lib/schemas/userSchema';
+import type { ZodError } from 'zod';
+
+const formatZodErrors = (error: ZodError) =>
+  error.errors.map((err) => ({
+    field: err.path[0],
+    message: err.message,
+  }));
 
 export async function GET(req: Request) {
   try {
@@ -32,11 +40,17 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    if (!body.email || !body.name) {
-      return NextResponse.json({ error: 'name and email are required' }, { status: 400 });
+    const parsed = createUserSchema.safeParse(body);
+    if (!parsed.success) {
+      return sendError('Validation Error', ERROR_CODES.VALIDATION_ERROR, 400, formatZodErrors(parsed.error));
     }
 
-    const created = await prisma.user.create({ data: { name: body.name, email: body.email, role: body.role || 'CONTRIBUTOR', passwordHash: body.passwordHash || '' } });
+    const created = await prisma.user.create({
+      data: {
+        ...parsed.data,
+        passwordHash: parsed.data.passwordHash ?? '',
+      },
+    });
     return sendSuccess(created, 'User created', 201);
   } catch (err: any) {
     return sendError('Failed to create user', ERROR_CODES.DATABASE_FAILURE, 500, err?.message || err);

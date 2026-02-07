@@ -132,6 +132,49 @@ try {
 
 Using a consistent envelope simplifies frontend error handling and logging, and makes it easier to attach observability metadata (timestamps, error codes) across services.
 
+### Zod Validation
+
+Request bodies are validated with Zod before hitting Prisma. Schemas live in `src/lib/schemas/`:
+
+- `userSchema.ts`
+- `projectSchema.ts`
+- `taskSchema.ts`
+
+Each POST/PUT route validates input and returns a structured error envelope on failure.
+
+Example validation error response:
+
+```json
+{
+	"success": false,
+	"message": "Validation Error",
+	"error": {
+		"code": "E001",
+		"details": [
+			{ "field": "name", "message": "Name must be at least 2 characters long" },
+			{ "field": "email", "message": "Invalid email address" }
+		]
+	},
+	"timestamp": "2026-02-06T12:00:00.000Z"
+}
+```
+
+Example usage inside a route:
+
+```ts
+const parsed = createUserSchema.safeParse(body);
+if (!parsed.success) {
+	return sendError('Validation Error', ERROR_CODES.VALIDATION_ERROR, 400, parsed.error.errors);
+}
+```
+
+Schema reuse (client + server): you can import the same Zod schemas in client forms for validation and infer TypeScript types for form state, while reusing them on the server for input enforcement.
+
+Add screenshots/logs here:
+
+![Zod success](docs/zod-success.png)
+![Zod failure](docs/zod-failure.png)
+
 ### Postman collection
 
 A small Postman collection is included at `docs/postman_collection.json` with basic requests for `users`, `projects`, and `tasks` to help testing locally.
