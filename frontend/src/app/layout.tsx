@@ -1,3 +1,6 @@
+import { AuthProvider } from "@/src/context/AuthContext";
+import { UIProvider } from "@/src/context/UIContext";
+
 export default function RootLayout({
   children,
 }: {
@@ -5,7 +8,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+        <body>
+            <AuthProvider>
+                <UIProvider>
+                    {children}
+                </UIProvider>
+            </AuthProvider>
+        </body>
     </html>
   );
 }
