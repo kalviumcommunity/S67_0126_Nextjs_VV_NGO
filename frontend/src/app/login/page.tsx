@@ -2,10 +2,12 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema, LoginFormData } from "@/src/lib/schemas/authSchema";
-import InputField from "@/src/components/forms/InputField";
+import { loginSchema, LoginFormData } from "@/lib/schemas/authSchema";
+import InputField from "@/components/forms/InputField";
+import { useUIContext } from "@/context/UIContext";
 
 export default function LoginPage() {
+  const { showToast } = useUIContext();
   const {
     register,
     handleSubmit,
@@ -16,6 +18,7 @@ export default function LoginPage() {
 
   const onSubmit = (data: LoginFormData) => {
     console.log("Login Data:", data);
+    showToast("Login successful");
   };
 
   return (

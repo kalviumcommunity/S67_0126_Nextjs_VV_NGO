@@ -1,8 +1,8 @@
 "use client";
 
 import useSWR from "swr";
-import { fetcher } from "@/src/lib/fetcher";
-import AddUser from "@/src/app/users/AddUser";
+import { fetcher } from "@/lib/fetcher";
+import AddUser from "@/app/users/AddUser";
 
 export default function UsersPage() {
   const { data, error, isLoading } = useSWR("/api/users", fetcher);
