@@ -1,5 +1,7 @@
-import { AuthProvider } from "@/src/context/AuthContext";
-import { UIProvider } from "@/src/context/UIContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { UIProvider } from "@/context/UIContext";
+import ToastContainer from "@/components/feedback/ToastContainer";
+import "./globals.css"
 
 export default function RootLayout({
   children,
@@ -11,6 +13,7 @@ export default function RootLayout({
         <body>
             <AuthProvider>
                 <UIProvider>
+                    <ToastContainer />
                     {children}
                 </UIProvider>
             </AuthProvider>

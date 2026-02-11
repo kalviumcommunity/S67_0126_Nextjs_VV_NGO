@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import useSWR, { mutate } from "swr";
-import { fetcher } from "@/src/lib/fetcher";
+import { fetcher } from "@/lib/fetcher";
 
 export default function AddUser() {
   const { data } = useSWR("/api/users", fetcher);

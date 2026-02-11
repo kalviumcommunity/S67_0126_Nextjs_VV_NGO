@@ -1,6 +1,6 @@
 "use client";
-import { useAuth } from "@/src/hooks/useAuth";
-import { useUI } from "@/src/hooks/useUI";
+import { useAuth } from "@/hooks/useAuth";
+import { useUI } from "@/hooks/useUI";
 
 export default function Home() {
   const { user, login, logout, isAuthenticated } = useAuth();

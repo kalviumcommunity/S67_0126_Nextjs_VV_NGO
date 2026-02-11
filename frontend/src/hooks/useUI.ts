@@ -1,4 +1,4 @@
-import { useUIContext } from "@/src/context/UIContext";
+import { useUIContext } from "@/context/UIContext";
 
 export function useUI() {
   const { theme, toggleTheme, sidebarOpen, toggleSidebar } = useUIContext();
