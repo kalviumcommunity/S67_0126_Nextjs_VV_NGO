@@ -175,6 +175,60 @@ Add screenshots/logs here:
 ![Zod success](docs/zod-success.png)
 ![Zod failure](docs/zod-failure.png)
 
+---
+
+## Redis Caching
+
+Redis is used as a cache-aside layer to speed up frequently accessed API responses. The users list endpoint is cached with a short TTL to reduce database load and improve response times.
+
+### Redis client
+
+The connection lives in [src/lib/redis.ts](src/lib/redis.ts):
+
+```ts
+import Redis from "ioredis";
+
+const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+
+export default redis;
+```
+
+### Cache-aside example
+
+In [src/app/api/users/route.ts](src/app/api/users/route.ts), the handler checks Redis first, then falls back to Prisma on cache miss:
+
+```ts
+const cacheKey = "users:list";
+const cached = await redis.get(cacheKey);
+if (cached) return sendSuccess(JSON.parse(cached));
+
+const users = await prisma.user.findMany();
+await redis.set(cacheKey, JSON.stringify(users), "EX", 60);
+```
+
+### TTL policy
+
+`users:list` is cached for 60 seconds. This balances freshness with performance for frequently read data.
+
+### Cache invalidation
+
+On user create/update/delete, the list cache is cleared:
+
+```ts
+await redis.del("users:list");
+```
+
+### Evidence / timing
+
+Add latency logs or screenshots comparing cache miss vs hit:
+
+![Redis cache miss](docs/redis-cache-miss.png)
+![Redis cache hit](docs/redis-cache-hit.png)
+
+### Reflection
+
+Cache-aside keeps reads fast while ensuring writes invalidate stale data. The main risk is serving slightly stale reads between updates and TTL expiry, which is mitigated by short TTLs and explicit invalidation on writes.
+
 ### Postman collection
 
 A small Postman collection is included at `docs/postman_collection.json` with basic requests for `users`, `projects`, and `tasks` to help testing locally.

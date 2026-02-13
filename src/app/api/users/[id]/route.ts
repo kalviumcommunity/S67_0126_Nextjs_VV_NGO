@@ -1,8 +1,11 @@
 import prisma from '../../../../lib/prisma';
+import redis from '../../../../lib/redis';
 import { sendSuccess, sendError } from '../../../../lib/responseHandler';
 import { ERROR_CODES } from '../../../../lib/errorCodes';
 import { updateUserSchema } from '../../../../lib/schemas/userSchema';
 import type { ZodError } from 'zod';
+
+const USERS_CACHE_KEY = 'users:list';
 
 const formatZodErrors = (error: ZodError) =>
   error.errors.map((err) => ({
@@ -31,6 +34,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 
     const updated = await prisma.user.update({ where: { id }, data: parsed.data });
+    await redis.del(USERS_CACHE_KEY);
     return sendSuccess(updated, 'User updated');
   } catch (err: any) {
     return sendError('Failed to update user', ERROR_CODES.DATABASE_FAILURE, 500, err?.message || err);
@@ -41,6 +45,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
   try {
     const { id } = params;
     await prisma.user.delete({ where: { id } });
+    await redis.del(USERS_CACHE_KEY);
     return sendSuccess(null, 'User deleted');
   } catch (err: any) {
     return sendError('Failed to delete user', ERROR_CODES.DATABASE_FAILURE, 500, err?.message || err);
